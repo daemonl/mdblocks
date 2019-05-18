@@ -1,6 +1,7 @@
 const expect = require('chai').expect;
 const parse = require('../lib/parse');
 
+// Tests from https://github.github.com/gfm/
 
 context('4.2 ATX Headings', () => {
 	it('Should parse basic heading', () => {
