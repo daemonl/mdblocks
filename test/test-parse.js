@@ -724,10 +724,47 @@ context("4.4 Indented Code Blocks", () => {
 		{ type: "code", lines: ["foo"] },
 		{ type: "p", content: "bar" },
 	])
+
+	example("85. Next to other types", [
+		"# Heading",
+		"    foo",
+		"Heading",
+		"------",
+		"    foo",
+		"----",
+	], [
+		{ type: "h1", content: "Heading" },
+		{ type: "code", lines: ["foo"] },
+		{ type: "h2", content: "Heading" },
+		{ type: "code", lines: ["foo"] },
+		{ type: "hr" },
+	])
+
+	example("86. Beginning with more indent", [
+		"        foo",
+		"    bar",
+	], [{
+		type: "code",
+		lines: ["    foo", "bar"],
+	}])
+
+	example("87. Drop leading and trailing empty lines", [
+		"",
+		"    ",
+		"    foo",
+		"    ",
+	], [{
+		type: "code",
+		lines: ["foo"],
+	}])
+
+	example("88. Don't drop trailing spaces", [
+		"    foo  "
+	], [{
+		type: "code",
+		lines: ["foo  "],
+	}])
 })
-
-
-
 
 it('Should find list types', () => {
 	expect(parseBlocks([
