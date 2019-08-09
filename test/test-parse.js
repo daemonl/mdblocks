@@ -59,13 +59,13 @@ context('4.1 Thematic breaks', () => {
 		.to.deep.equal([{
 			type: "list",
 			ordered: false,
-			items: [{text: "foo"}],
+			items: [[{type: "p", content: "foo"}]],
 		}, {
 			type: "hr",
 		}, {
 			type: "list",
 			ordered: false,
-			items: [{text: "bar"}],
+			items: [[{type: "p", content: "bar"}]],
 		}])
 	});
 	
@@ -110,18 +110,18 @@ context('4.1 Thematic breaks', () => {
 		.to.deep.equal([{
 			type: "list",
 			ordered: false,
-			items: [{text: "Foo"}],
+			items: [[{type: "p", content: "Foo"}]],
 		}, {
 			type: "hr",
 		}, {
 			type: "list",
 			ordered: false,
-			items: [{text: "Bar"}],
+			items: [[{type: "p", content: "Bar"}]],
 		}])
 	});
 
 
-	it('Example 31 - List specific', () => {
+	xit('Example 31 - List specific', () => {
 		// Note the thematic break is not interpreted inside the list item, unlike the example.
 		expect(parseBlocks([
 			"- Foo",
@@ -130,7 +130,7 @@ context('4.1 Thematic breaks', () => {
 		.to.deep.equal([{
 			type: "list",
 			ordered: false,
-			items: [{text: "Foo"}, {text: "* * *"}],
+			items: [[{type: "p", content: "Foo"}],[{type: "hr"}]],
 		}])
 	});
 
@@ -472,7 +472,7 @@ context('4.3 Setext headings', () => {
 		content: 'of dashes"/>',
 	}])
 
-	xexample("62. Lazy continuation", [
+	example("62. Lazy continuation", [
 		"> Foo",
 		"---",
 	], [{
@@ -485,6 +485,7 @@ context('4.3 Setext headings', () => {
 		type: "hr",
 	}])
 
+	// Other rules contradict, this parsing of 'paragraph continuation' is incorrect
 	xexample("63. More Lazy continuation", [
 		"> foo",
 		"bar",
@@ -497,15 +498,16 @@ context('4.3 Setext headings', () => {
 		}]
 	}])
 
-	xexample("64. Even more lazy continuation", [
+	example("64. Even more lazy continuation", [
 		"- Foo",
 		"---",
 	], [{
 		type: "list",
 		ordered: false,
-		items: [{
+		items: [[{
+			type: "p",
 			content: "Foo"	
-		}]
+		}]]
 	}, {
 		type: "hr",
 	}])
@@ -554,7 +556,7 @@ context('4.3 Setext headings', () => {
 	], [{
 		type: "list",
 		ordered: false,
-		items: [{ text: "foo" }],
+		items: [[{ type: "p", content: "foo" }]],
 	}, {
 		type: "hr",
 	}])
@@ -569,7 +571,7 @@ context('4.3 Setext headings', () => {
 		type: "hr",
 	}])
 
-	xexample("71. Blockquote doesn't become a heading", [
+	example("71. Blockquote doesn't become a heading", [
 		"> foo",
 		"-----",
 	], [{
@@ -583,11 +585,11 @@ context('4.3 Setext headings', () => {
 	}])
 
 	example("72. Escaped blockquote", [
-		"\> foo",
+		"\\> foo",
 		"------",
 	], [{
 		type: "h2",
-		content: "> foo",
+		content: "\\> foo",
 	}])
 
 	example("73. Empty line A", [
@@ -656,16 +658,20 @@ context("4.4 Indented Code Blocks", () => {
 		],
 	}])
 
-	xexample("78. Lists win", [
+	example("78. Lists win", [
 		"  - foo",
 		"",
 		"    bar",
 	], [{
 		type: "list",
 		ordered: false,
-		items: [{
-			text: "Foo bar",
-		}],
+		items: [[{
+			type: "p",
+			content: "foo",
+		}, {
+			type: "p",
+			content: "bar",
+		}]],
 	}])
 
 	example("80. No parsing", [
@@ -766,113 +772,578 @@ context("4.4 Indented Code Blocks", () => {
 	}])
 })
 
-it('Should find list types', () => {
-	expect(parseBlocks([
-		"- Item 1",
-		"- Item 2",
-		"- Item 3",
-	].join("\n")))
-	.to.deep.equal([{
-		type: "list",
-		ordered: false,
-		items: [{
-			text: "Item 1",
+context('5.1 Block Quotes', () => {
+	example("206. Basic block quote", [
+		"> # Foo",
+		"> bar",
+		"> baz",
+	], [{
+		type: "blockquote",
+		content: [{
+			type: "h1",
+			content: "Foo",
 		}, {
-			text: "Item 2",
+			type: "p",
+			content: "bar baz",
+		}]
+	}])
+	
+	example("207. space after > is optional", [
+		"># Foo",
+		">bar",
+		"> baz",
+	], [{
+		type: "blockquote",
+		content: [{
+			type: "h1",
+			content: "Foo",
 		}, {
-			text: "Item 3",
+			type: "p",
+			content: "bar baz",
+		}]
+	}])
+	
+	example("208. Leading spaces are optional", [
+		"   > # Foo",
+		"   > bar",
+		" > baz",
+	], [{
+		type: "blockquote",
+		content: [{
+			type: "h1",
+			content: "Foo",
+		}, {
+			type: "p",
+			content: "bar baz",
+		}]
+	}])
+	
+	example("209. 4 spaces is a code block", [
+		"    > # Foo",
+		"    > bar",
+		"    > baz",
+	], [{
+		type: "code",
+		lines: ["> # Foo", "> bar", "> baz"],
+	}])
+
+	example("210. Lazy clause", [
+		"> # Foo",
+		"> bar",
+		"baz",
+	], [{
+		type: "blockquote",
+		content: [{
+			type: "h1",
+			content: "Foo",
+		}, {
+			type: "p",
+			content: "bar baz",
 		}],
 	}])
 	
-	expect(parseBlocks([
-		"1. Item 1",
-		"7. Item 2",
-	].join("\n")))
-	.to.deep.equal([{
-		type: "list",
-		ordered: true,
-		items: [{
-			text: "Item 1",
-		}, {
-			text: "Item 2",
+	example("211. Lazy clause in the middle", [
+		"> bar",
+		"baz",
+		"> foo",
+	], [{
+		type: "blockquote",
+		content: [{
+			type: "p",
+			content: "bar baz foo",
 		}],
 	}])
-})
 
-it('Should find nested lists', () => {
-	let got = parseBlocks([
-		"- Item 0",
-		"- Item 1",
-		"  - Sub 1",
-		"  - Sub 2",
-		"    1. SS1",
-		"    1. SS2",
-		"- Item 2",
-	].join("\n"))
-	expect(got)
-	.to.deep.equal([{
+	example("212. No lazy for hr semantics", [
+		"> foo",
+		"---",
+	], [{
+		type: "blockquote",
+		content: [{ type: "p", content: "foo" }],
+	}, {
+		type: "hr",
+	}])
+	
+	example("213. No lazy for list semantics", [
+		"> - foo",
+		"- bar",
+	], [{
+		type: "blockquote",
+		content: [{
+			type: "list",
+			ordered: false,
+			items: [[{type: "p", content: "foo"}]],
+		}],
+	}, {
 		type: "list",
 		ordered: false,
-		items: [{
-			text: "Item 0",
+		items: [[{type: "p", content: "bar"}]],
+	}])
+
+	example("214. No lazy for code", [
+		">     foo",
+		"    bar",
+	], [{
+		type: "blockquote",
+		content: [{ type: "code", lines: ["foo"] }],
+	}, {
+		type: "code",
+		lines: ["bar"],
+	}])
+
+	xexample("215. No lazy for fenced code")
+
+	// This one seems like a back-worked spec from a bug in a reference
+	// implementation.
+	xexample("216. Looks like a list, but isn't, a list", [
+		"> foo",
+		"    - bar",
+	], [{
+		type: "blockquote",
+		content: [{ type: "p", content: "foo - bar"}],
+	}])
+
+	example("217. Empty", [">"], [
+		{ type: "blockquote", content: [] },
+	])
+	
+	example("218. Multi Empty", [">", ">  ", "> "], [
+		{ type: "blockquote", content: [] },
+	])
+	
+	example("219. Pad with empty lines", [">", "> foo", ">  "], [
+		{ 
+			type: "blockquote", 
+			content: [ { type: "p", content: "foo" } ],
+		},
+	])
+	
+	example("220. Split blockquotes with empty lines", [
+		"> foo",
+		"",
+		"> bar",
+	], [
+		{	 
+			type: "blockquote", 
+			content: [ { type: "p", content: "foo" } ],
 		}, {
-			text: "Item 1",
+			type: "blockquote", 
+			content: [ { type: "p", content: "bar" } ],
+		},
+	])
+	
+	example("222. Continue blockquotes with empty >", [
+		"> foo",
+		">",
+		"> bar",
+	], [
+		{	 
+			type: "blockquote", 
+			content: [ 
+				{ type: "p", content: "foo" },
+				{ type: "p", content: "bar" },
+			],
+		},
+	])
+	
+	example("223. Can interrupt paragraphs", [
+		"foo",
+		"> bar",
+	], [
+		{ type: "p", content: "foo" },
+		{ type: "blockquote", content: [
+			{ type: "p", content: "bar" }
+		] },
+	])
+	
+	example("224. No blank lines required", [
+		"> aaa",
+		"***",
+		"> bbb",
+	], [
+		{ type: "blockquote", content: [
+			{ type: "p", content: "aaa" }
+		] },
+		{ type: "hr" },
+		{ type: "blockquote", content: [
+			{ type: "p", content: "bbb" }
+		] },
+	])
+})
+
+
+context('Lists', () => {
+	it('Should find list types', () => {
+		expect(parseBlocks([
+			"- Item 1",
+			"- Item 2",
+			"- Item 3",
+		].join("\n")))
+		.to.deep.equal([{
+			type: "list",
 			ordered: false,
-			items: [{
-				text: "Sub 1",
-			}, {
-				text: "Sub 2",
-				ordered: true,
-				items: [{
-					text: "SS1",
-				}, {
-					text: "SS2",
-				}]
-			}]
-		}, {
-			text: "Item 2",
-		}]
-	}]);
-})
-
-// Various representations of the same table
-function checkTable(got) {
-	expect(got).to.have.length(1);
-	let t = got[0];
-	expect(t.type).to.equal("table");
-	expect(t)
-	.to.deep.equal({
-		type: "table",
-		header: ["Field A", "Field B", "Field C"],
-		rows: [["A1", "B1", "C1"], ["A2", "B2", "C2"]],
+			items: [[{
+				type: "p",
+				content: "Item 1",
+			}], [{
+				type: "p",
+				content: "Item 2",
+			}], [{
+				type: "p",
+				content: "Item 3",
+			}]],
+		}])
+		
+		expect(parseBlocks([
+			"1. Item 1",
+			"7. Item 2",
+		].join("\n")))
+		.to.deep.equal([{
+			type: "list",
+			ordered: true,
+			items: [[{
+				type: "p",
+				content: "Item 1",
+			}], [{
+				type: "p",
+				content: "Item 2",
+			}]],
+		}])
 	})
-}
+	
+	it('Continued Lines', () => {
+		let got = parseBlocks([
+			"- Item 0",
+			"- Line 1",
+			"  Line 2",
+			"- Item 2",
+		].join("\n"));
 
-it('Table no outside', () => {
-	checkTable(parseBlocks([
-		'Field A | Field B | Field C',
-		'--------|---------|--------',
-		'A1      | B1      | C1     ',
-		'A2      | B2      | C2     ',
-	].join("\n")))
+		expect(got)
+		.to.deep.equal([{
+			type: "list",
+			ordered: false,
+			items: [
+				[ { type: "p", content: "Item 0" } ],
+				[ 
+					{ type: "p", content: "Line 1 Line 2" } 
+				],
+				[ { type: "p", content: "Item 2" } ],
+			]
+		}])
+	})
+	
+	it('Nested List Lines', () => {
+		let got = parseBlocks([
+			"- Item 0",
+			"- Item 1 Root",
+			"  - Item 1 Sub",
+			"- Item 2",
+		].join("\n"));
+
+		expect(got)
+		.to.deep.equal([{
+			type: "list",
+			ordered: false,
+			items: [
+				[ { type: "p", content: "Item 0" } ],
+				[ 
+					{ type: "p", content: "Item 1 Root" },
+					{
+						type: "list",
+						ordered: false,
+						items: [[
+							{ type: "p", content: "Item 1 Sub" }
+						]]
+					},
+				],
+				[ { type: "p", content: "Item 2" } ],
+			]
+		}])
+	})
+
+	it('Should find nested lists 2', () => {
+		let got = parseBlocks([
+			"- Item 0",
+			"- Item 1",
+			"  - Sub 1",
+			"    1. SS0",
+			"  - Sub 2",
+			"    1. SS1",
+			"    1. SS2",
+			"- Item 2",
+		].join("\n"))
+		expect(got)
+		.to.deep.equal([{
+			type: "list",
+			ordered: false,
+			items: [
+			[
+				{
+					type: "p",
+					content: "Item 0",
+				}
+			], [
+				{
+					type: "p",
+					content: "Item 1",
+				}, {
+					type: "list",
+					ordered: false,
+					items: [
+						[
+							{
+								type: "p",
+								content: "Sub 1",
+							}, {
+								type: "list",
+								ordered: true,
+								items: [
+									[ { type: "p", content: "SS0" } ],
+								]
+							}
+						], [
+							{
+								type: "p",
+								content: "Sub 2",
+							}, {
+								type: "list",
+								ordered: true,
+								items: [
+									[ { type: "p", content: "SS1" } ],
+									[ { type: "p", content: "SS2" } ],
+								]
+							}
+						]
+					]
+				}
+			], [
+				{ type: "p", content: "Item 2" },
+			]
+			]
+		}]);
+	})
+
+
+	example("232. Complicated List content", [
+		"1.  A paragraph",
+		"    with two lines.",
+		"",
+		"        indented code",
+		"",
+		"    > A block quote.",
+	], [{
+		type: "list",
+		ordered: true,
+		items: [[
+			{ type: "p", content: "A paragraph with two lines." },
+			{ type: "code", lines: ["indented code"] },
+			{ type: "blockquote", content: [
+				{ type: "p", content: "A block quote." }
+			]}
+		]],
+	}])
+
+	example("233. Not Enough Indent", [
+		"- one",
+		"",
+		" two",
+	], [{
+		type: "list",
+		ordered: false,
+		items: [[ { type: "p", content: "one" } ]],
+	}, {
+		type: "p",
+		content: "two",
+	}])
+	
+	example("234. Enough Indent", [
+		"- one",
+		"",
+		"  two",
+	], [{
+		type: "list",
+		ordered: false,
+		items: [[ 
+			{ type: "p", content: "one" },
+			{ type: "p", content: "two" },
+		]],
+	}])
+
+
+	example("235. Not enough, but heaps of whitespace", [
+		" -    one",
+		"",
+		"     two",
+	], [{
+		type: "list",
+		ordered: false,
+		items: [[ 
+			{ type: "p", content: "one" },
+		]],
+	}, {
+		type: "code",
+		lines: [" two"],
+	}])
+
+	example("236. And just enough again", [
+		" -    one",
+		"",
+		"      two",
+	], [{
+		type: "list",
+		ordered: false,
+		items: [[ 
+			{ type: "p", content: "one" },
+			{ type: "p", content: "two" },
+		]],
+	}])
+
+	example("237. Column disproof", [
+		"   > > 1.  one",
+		">>",
+		">>     two	",
+	], [{
+		type: "blockquote",
+		content: [{
+			type: "blockquote",
+			content: [{
+				type: "list",
+				ordered: true,
+				items: [[ 
+					{ type: "p", content: "one" },
+					{ type: "p", content: "two" },
+				]],
+			}],
+		}],
+	}])
+
+	example("238. Conversely...", [
+		">>- one",
+		">>",
+		"  >  > two",
+	], [{
+		type: "blockquote",
+		content: [{
+			type: "blockquote",
+			content: [{
+				type: "list",
+				ordered: false,
+				items: [[ 
+					{ type: "p", content: "one" },
+				]],
+			}, {
+				type: "p", 
+				content: "two",
+			}],
+		}],
+	}])
+	
+	example("240. Blank lines don't break list items", [
+		"- foo",
+		"",
+		"  bar",
+	], [{
+		type: "list",
+		ordered: false,
+		items: [[
+			{ type: "p", content: "foo" },
+			{ type: "p", content: "bar" },
+		]]
+	}])
+
+	example("243. Numbering to 9 chars", [
+		"123456789. ok",
+	], [{
+		type: "list",
+		ordered: true,
+		items: [[ { type: "p", content: "ok" } ]],
+	}])
+	
+	example("244. Numbering beyond 9 chars", [
+		"1234567890. not ok",
+	], [{
+		type: "p", 
+		content: "1234567890. not ok",
+	}])
+
+	example("245. Numbering 0", [
+		"0. ok",
+	], [{
+		type: "list",
+		ordered: true,
+		items: [[ { type: "p", content: "ok" } ]],
+	}])
+	
+	example("245. Numbering leading 0s", [
+		"003. ok",
+	], [{
+		type: "list",
+		ordered: true,
+		items: [[ { type: "p", content: "ok" } ]],
+	}])
+
+	example("244. Numbering negative", [
+		"-1. not ok",
+	], [{
+		type: "p", 
+		content: "-1. not ok",
+	}])
+
+	example("252. Indented Code", [
+		"1.      indented code",
+		"",
+		"   paragraph",
+		"",
+		"       more code",
+	], [{
+		type: "list",
+		ordered: true,
+		items: [[{
+			type: "code",
+			lines: [ " indented code" ],
+		}, {
+			type: "p",
+			content: "paragraph",
+		}, {
+			type: "code",
+			lines: [ "more code" ],
+		}]]
+	}])
+
 })
 
-it('Table with outside pipes', () => {
-	checkTable(parseBlocks([
-		'| Field A | Field B | Field C|',
-		'|---------|---------|--------|',
-		'| A1      | B1      | C1     |',
-		'| A2      | B2      | C2     |',
-	].join("\n")))
-})
+context('Tables', () => {
+	// Various representations of the same table
+	function checkTable(got) {
+		expect(got).to.have.length(1);
+		let t = got[0];
+		expect(t.type).to.equal("table");
+		expect(t)
+		.to.deep.equal({
+			type: "table",
+			header: ["Field A", "Field B", "Field C"],
+			rows: [["A1", "B1", "C1"], ["A2", "B2", "C2"]],
+		})
+	}
 
-// 2.2 Tabs
+	it('Table no outside', () => {
+		checkTable(parseBlocks([
+			'Field A | Field B | Field C',
+			'--------|---------|--------',
+			'A1      | B1      | C1     ',
+			'A2      | B2      | C2     ',
+		].join("\n")))
+	})
 
-// 2.3 Insecure characters 
-// For security reasons, the Unicode character U+0000 must be replaced with the REPLACEMENT CHARACTER (U+FFFD).
-
-
-context('3. Blocks and inlines', () => {
+	it('Table with outside pipes', () => {
+		checkTable(parseBlocks([
+			'| Field A | Field B | Field C|',
+			'|---------|---------|--------|',
+			'| A1      | B1      | C1     |',
+			'| A2      | B2      | C2     |',
+		].join("\n")))
+	})
 
 })
 
