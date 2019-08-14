@@ -1,0 +1,74 @@
+---
+extends: ["airbnb-base"]
+plugins:
+  - import
+
+env:
+  node: true
+  mocha: true
+
+rules:
+  semi: ["warn", "always"]
+
+  object-curly-newline:
+    - "warn"
+    - consistent: true
+      minProperties: 5
+      multiline: true
+
+  arrow-parens: ["error", "as-needed"]
+
+  max-classes-per-file: ["off"]
+  no-use-before-define: ["off"]
+  no-restricted-syntax: ["off"]
+  no-continue: ["off"]
+  prefer-destructuring: ["off"]
+
+  consistent-return:
+    - "warn"
+    - treatUndefinedAsUnspecified: true
+
+  # Explicit code implementing a function signature
+  no-unused-vars:
+    - "warn"
+    - args: none
+      ignoreRestSiblings: true
+
+  # No options to enable `action.data._errors` to support our API shape
+  no-underscore-dangle: ["off"]
+
+  no-shadow: ["off"]
+
+
+  # Doesn't work well with class overrides
+  class-methods-use-this: ["off"]
+
+  import/prefer-default-export:
+    - "off"
+
+  import/no-default-export:
+    - "warn"
+
+  no-console:
+    - "warn"
+    - allow: ["warn", "error"]
+
+  no-plusplus: ["off"]
+
+  # We use this as a pattern to do duck-punching
+  no-param-reassign: ["off"]
+
+  # Perhaps later, but would be nicer to limit complexity rather than length
+  max-len: ["off"]
+
+  padding-line-between-statements:
+    - "warn"
+    - blankLine: always
+      prev: ["*"]
+      next: ["function", "export", "class"]
+
+
+  # TODO: Fix these, downgraded to warnings for now
+  prefer-promise-reject-errors: ["warn"]
+  camelcase: ["warn"]
+
