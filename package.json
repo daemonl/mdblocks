@@ -1,8 +1,8 @@
 {
   "name": "mdblocks",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Markdown block parser",
-  "main": "./lib/blocks.js",
+  "main": "./lib/index.js",
   "author": "daemonl",
   "license": "MIT",
   "private": false,
